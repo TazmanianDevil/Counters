@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.tazik.counters.service.CounterService;
 
 import javax.validation.constraints.NotNull;
-import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("counters")
@@ -46,7 +46,7 @@ public class CounterController {
     }
 
     @RequestMapping(value = "names")
-    public List<String> names() {
+    public Set<String> names() {
         return counterService.getNames();
     }
 
