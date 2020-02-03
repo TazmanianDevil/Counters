@@ -1,53 +1,67 @@
 package ru.tazik.counters.endpoint;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import ru.tazik.counters.dto.CounterUpdateRq;
+import ru.tazik.counters.dto.GetCountersNamesRs;
+import ru.tazik.counters.enums.CounterCommand;
+import ru.tazik.counters.model.Counter;
 import ru.tazik.counters.service.CounterService;
 
-import javax.validation.constraints.NotNull;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.net.URI;
 import java.util.Set;
 
 @RestController
 @RequestMapping("counters")
+@AllArgsConstructor
 public class CounterController {
 
-    private CounterService counterService;
+    private final CounterService counterService;
 
-    @Autowired
-    public CounterController(CounterService counterService) {
-        this.counterService = counterService;
+    @RequestMapping(method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON,
+            produces = MediaType.APPLICATION_JSON)
+    public ResponseEntity<Void> create() {
+        String name = counterService.create();
+        URI uri = ServletUriComponentsBuilder.fromCurrentServletMapping().path("/counters/{id}").build()
+                .expand(name).toUri();
+        return ResponseEntity.created(uri).build();
     }
 
-    @RequestMapping("create")
-    public String create() {
-        return counterService.create();
+    @RequestMapping(method = RequestMethod.PATCH, value = "{name}")
+    public ResponseEntity<Void> increment(@PathVariable("name") String name, @RequestBody CounterUpdateRq request) {
+        CounterCommand command = request.getCommand();
+        if (CounterCommand.INCREMENT == command) {
+            counterService.increment(name);
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
 
-    @RequestMapping(value = "{name}/increment")
-    public void increment(@PathVariable("name") @NotNull String name) {
-        counterService.increment(name);
+    @RequestMapping(value = "{name}")
+    public ResponseEntity<Counter> value(@PathVariable("name") String name) {
+        Counter counter = new Counter(name, counterService.getValue(name));
+        return ResponseEntity.ok().body(counter);
     }
 
-    @RequestMapping(value = "{name}/value")
-    public long value(@PathVariable("name") @NotNull String name) {
-        return counterService.getValue(name);
-    }
-
-    @RequestMapping(value = "{name}/delete")
-    public void delete(@PathVariable("name") @NotNull String name) {
-        counterService.delete(name);
+    @RequestMapping(method = RequestMethod.DELETE, value = "{name}")
+    public ResponseEntity<Counter> delete(@PathVariable("name") String name) {
+        long value = counterService.delete(name);
+        return ResponseEntity.ok().body(new Counter(name, value));
     }
 
     @RequestMapping(value = "total")
-    public long total() {
-        return counterService.getTotal();
+    public ResponseEntity<Counter> total() {
+        return ResponseEntity.ok().body(new Counter(counterService.getTotal()));
     }
 
-    @RequestMapping(value = "names")
-    public Set<String> names() {
-        return counterService.getNames();
+    @RequestMapping
+    public ResponseEntity<GetCountersNamesRs> names() {
+        Set<String> names = counterService.getNames();
+        return ResponseEntity.ok().body(new GetCountersNamesRs(names));
     }
-
 }

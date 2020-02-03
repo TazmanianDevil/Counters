@@ -39,7 +39,7 @@ public class CounterService {
         counter.increment();
     }
 
-    private LongAdder getCounter(String name) {
+    public LongAdder getCounter(String name) {
         LongAdder counter = counters.get(name);
         if (counter == null) {
             throw new IllegalArgumentException(String.format("Отсутствует счетчик с именем %s", name));
@@ -63,8 +63,9 @@ public class CounterService {
      *
      * @param name имя счетчика
      */
-    public void delete(String name) {
-        counters.remove(name);
+    public long delete(String name) {
+        LongAdder value = counters.remove(name);
+        return value != null ? value.longValue() : 0;
     }
 
     /**
