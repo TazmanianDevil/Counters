@@ -7,6 +7,6 @@ import java.util.Set;
 
 @Data
 @AllArgsConstructor
-public class GetCountersNamesRs {
+public class GetCountersNamesResponse {
     private Set<String> names;
 }

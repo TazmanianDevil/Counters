@@ -18,13 +18,13 @@ public class CounterService {
      * @return имя созданного счетчика
      */
     public String create() {
-        String name = UUID.randomUUID().toString();
-        LongAdder counter = new LongAdder();
-        if (!counters.containsKey(name)) {
-            counters.put(name, counter);
-            return name;
-        } else {
-            return create();
+        while (true) {
+            String name = UUID.randomUUID().toString();
+            if (!counters.containsKey(name)) {
+                LongAdder counter = new LongAdder();
+                counters.put(name, counter);
+                return name;
+            }
         }
     }
 

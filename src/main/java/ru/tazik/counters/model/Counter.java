@@ -18,9 +18,6 @@ public class Counter {
     @JsonPropertyDescription("Значение")
     private Long value;
 
-    public Counter(String id) {
-        this.id = id;
-    }
     public Counter(Long value) {
         this.value = value;
     }
